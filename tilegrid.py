@@ -181,19 +181,42 @@ if __name__ == "__main__":
         "Manhattan Distance": h2_manhattan_distance
     }
     
+    results = {name: {'scores': [], 'frontiers': [], 'times': []} for name in heuristics_to_test}
+    solutions_found = {name: 0 for name in heuristics_to_test}
+
+
 
 for i, initial_state in enumerate(solvable_puzzles):
-        print(f"\n----- TESTING PUZZLE #{i+1} -----")
-        print(initial_state)
+        print(f"\n--- Testing Puzzle #{i+1} ---")
         for name, heuristic in heuristics_to_test.items():
-            print(f"  Running with heuristic: '{name}'...")
             start_time = time.time()
-            
             solution_path, score, max_frontier = solve_puzzle(initial_state, goal_state, heuristic)
-            
             end_time = time.time()
 
-            if solution_path:
-                print(f"    Solution Found! Score: {score}, Max Frontier: {max_frontier}, Time: {end_time - start_time:.4f}s")
+            # A solution path can be an empty list (for an already solved puzzle), so we check for None
+            if solution_path is not None:
+                print(f"  > Solution FOUND for '{name}' heuristic.")
+                results[name]['scores'].append(score)
+                results[name]['frontiers'].append(max_frontier)
+                results[name]['times'].append(end_time - start_time)
+                solutions_found[name] += 1
             else:
-                print("    No solution found.")
+                print(f"  > No solution found for '{name}' heuristic.")
+
+
+for name, data in results.items():
+        num_solutions = solutions_found[name]
+        total_puzzles = len(solvable_puzzles)
+        print(f"\nHeuristic: '{name}'")
+        print(f"  Solutions Found: {num_solutions}/{total_puzzles}")
+
+        if num_solutions > 0:
+            avg_score = sum(data['scores']) / num_solutions
+            avg_frontier = sum(data['frontiers']) / num_solutions
+            avg_time = sum(data['times']) / num_solutions
+            
+            print(f"  Average Score (Moves): {avg_score:.2f}")
+            print(f"  Average Max Frontier Size: {avg_frontier:.2f}")
+            print(f"  Average Time: {avg_time:.4f}s")
+        else:
+            print("  No solutions were found, so averages cannot be calculated.")
